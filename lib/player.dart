@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:better_player/better_player.dart';
 import 'util/imapleManager.dart';
@@ -19,6 +21,7 @@ class _VideoAppState extends State<VideoApp> {
   late BetterPlayerController _betterPlayerController;
   late Future<String> movieStreamUrlFuture;
   var setupDataSource = false;
+  var isControlVisible = true;
   var errorMessage = "";
   var streamUrl = '';
   var _imapleManager = IMapleManager();
@@ -46,7 +49,7 @@ class _VideoAppState extends State<VideoApp> {
         enablePlaybackSpeed: true,
         forwardSkipTimeInMilliseconds: 10000,
         backwardSkipTimeInMilliseconds: 10000,
-
+        enableSkips: false,
       ),
     );
     _betterPlayerController = BetterPlayerController(betterPlayerConfiguration);
@@ -64,6 +67,10 @@ class _VideoAppState extends State<VideoApp> {
       else if (event.betterPlayerEventType == BetterPlayerEventType.controlsHidden) {
         SystemChrome.setEnabledSystemUIOverlays([]
         );
+        isControlVisible = false;
+      }
+      else if (event.betterPlayerEventType == BetterPlayerEventType.controlsVisible) {
+        isControlVisible = true;
       }
       print("Better player event: ${event.betterPlayerEventType}");
     });
@@ -93,8 +100,9 @@ class _VideoAppState extends State<VideoApp> {
                 snapshot.data!,
                 cacheConfiguration: BetterPlayerCacheConfiguration(
                   useCache: true,
-                  preCacheSize: 10 * 1024 * 1024,
-                  maxCacheSize: 10 * 1024 * 1024,
+                  preCacheSize: 30 * 1024 * 1024,
+                  //(10mb)
+                  maxCacheSize: 100 * 1024 * 1024,
                   maxCacheFileSize: 10 * 1024 * 1024,
 
                   ///Android only option to use cached video between app sessions
@@ -105,10 +113,92 @@ class _VideoAppState extends State<VideoApp> {
               );
               setupDataSource = true;
               return errorMessage == ""
-                  ? Expanded(
-                child: BetterPlayer(controller: _betterPlayerController
-                ),
+                  ? Stack(
+                children: [
+                  Expanded(
+                    child: BetterPlayer(controller: _betterPlayerController
+                    ),
+                  ),
+                  Flex(
+                    direction: Axis.horizontal,
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          padding: EdgeInsets.only(top: 50, bottom: 50
+                          ),
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              _betterPlayerController.setControlsVisibility(!isControlVisible
+                              );
+                            },
+                            onDoubleTap: () {
+                              final videoPlayerController =
+                                  _betterPlayerController.videoPlayerController!.value;
+                              final beginning = const Duration().inMilliseconds;
+                              final skip = (videoPlayerController.position -
+                                  Duration(
+                                      milliseconds: _betterPlayerController
+                                          .betterPlayerConfiguration
+                                          .controlsConfiguration
+                                          .backwardSkipTimeInMilliseconds
+                                  ))
+                                  .inMilliseconds;
+                              _betterPlayerController
+                                  .seekTo(Duration(milliseconds: max(skip, beginning
+                              )
+                              )
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          padding: EdgeInsets.only(top: 50, bottom: 50
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          padding: EdgeInsets.only(top: 50, bottom: 50
+                          ),
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              _betterPlayerController.setControlsVisibility(!isControlVisible
+                              );
+                            },
+                            onDoubleTap: () {
+                              final videoPlayerController =
+                                  _betterPlayerController.videoPlayerController!.value;
+                              final end = videoPlayerController.duration!.inMilliseconds;
+                              final skip = (videoPlayerController.position +
+                                  Duration(
+                                      milliseconds: _betterPlayerController
+                                          .betterPlayerConfiguration
+                                          .controlsConfiguration
+                                          .forwardSkipTimeInMilliseconds
+                                  ))
+                                  .inMilliseconds;
+                              _betterPlayerController.seekTo(Duration(milliseconds: min(skip, end
+                              )
+                              )
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               )
+//              Expanded(
+//                      child: BetterPlayer(controller: _betterPlayerController),
+//                    )
                   : Container(
                   alignment: Alignment.center,
                   child: Text(errorMessage,
