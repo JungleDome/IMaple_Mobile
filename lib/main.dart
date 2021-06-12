@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:imaplemobile/page/movie_menu.dart';
 
 import 'player.dart';
 
@@ -118,7 +119,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   child: FloatingActionButton(
                     heroTag: 'btn2',
                     onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => VideoApp()));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => MovieMenu()
+                      )
+                      );
                     },
                     tooltip: 'Navigate',
                     child: Icon(Icons.navigate_next),

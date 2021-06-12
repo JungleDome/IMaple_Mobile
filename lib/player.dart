@@ -32,7 +32,7 @@ class _VideoAppState extends State<VideoApp> {
         BetterPlayerConfiguration(
             aspectRatio: 16 / 9,
             fit: BoxFit.contain,
-            fullScreenByDefault: true,
+            //fullScreenByDefault: true,
             autoDetectFullscreenDeviceOrientation: true,
             autoPlay: true,
             errorBuilder: (context, errorMessage) {
@@ -40,8 +40,8 @@ class _VideoAppState extends State<VideoApp> {
                   'Sorry, there is an error playing the video.\n Please try another source.');
             },
             controlsConfiguration: BetterPlayerControlsConfiguration(
-              enableQualities: true,
-              showControlsOnInitialize: true,
+              //enableQualities: true,
+              //showControlsOnInitialize: true,
             ));
     _betterPlayerController = BetterPlayerController(betterPlayerConfiguration);
     _betterPlayerController.addEventsListener((event) {
