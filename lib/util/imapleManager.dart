@@ -17,10 +17,12 @@ class Movie {
   final List<Playlist> playlist;
 
   final String thumbnailUrl;
+  final String detailUrl;
 
   Movie(
       {required this.name,
       required this.playlist,
+        required this.detailUrl,
       this.altName = "",
       this.description = "",
       this.author = "",
@@ -71,9 +73,10 @@ class IMapleManager {
   static const searchPageSize = 21;
   static const listingPageSize = 48;
 
-  Future<Movie> getMovie() async {
+  Future<Movie> getMovie(String detailUrl) async {
     final response = await http.get(
-      Uri.parse(IMapleManager.baseUrl + '/vod/103058.html'),
+      Uri.parse(IMapleManager.baseUrl + detailUrl
+      ),
       headers: <String, String>{
         'Content-Type': 'text/html; charset=UTF-8',
       },
@@ -205,6 +208,7 @@ class IMapleManager {
         return Movie(
             name: movieName,
             playlist: parsedPlaylist.toList(),
+            detailUrl: detailUrl,
             altName: movieAltName,
             actor: movieActor,
             author: movieAuthor,
@@ -218,7 +222,8 @@ class IMapleManager {
 
       return Movie(name: "Mock", playlist: [
         Playlist("枫林网", {"ep1": "awd"})
-      ]);
+      ], detailUrl: '/vod/50283.html'
+      );
     } else {
       throw Exception("Failed to fetch movie details.");
     }
@@ -278,8 +283,9 @@ class IMapleManager {
 
   Future<SearchResult> getMovieList({String pageLink = '/show/1', int pageNumber = 1}) async {
     final response = await http.get(
-      Uri.parse(IMapleManager.baseUrl + '${pageLink.replaceAll('.html', ''
-      )}/page/${pageNumber}/by/hits.html'
+      Uri.parse(
+          IMapleManager.baseUrl + '${pageLink.replaceAll('.html', ''
+          )}/page/${pageNumber}/by/hits.html'
       ),
       headers: <String, String>{
         'Content-Type': 'text/html; charset=UTF-8',
@@ -308,14 +314,19 @@ class IMapleManager {
       );
       var searchResultList = movieList?.children.map<SearchResultItem>((movieItem) {
         var movieUrl = movieItem
-            .querySelector('.myui-vodlist__thumb a'
+            .querySelector('a.myui-vodlist__thumb'
         )
             ?.attributes['href'] ?? '';
         var movieThumbnail =
             movieItem
-                .querySelector('.myui-vodlist__thumb a'
+                .querySelector('a.myui-vodlist__thumb'
             )
                 ?.attributes['data-original'] ?? '';
+        var movieDetailUrl =
+            movieItem
+                .querySelector('a.myui-vodlist__thumb'
+            )
+                ?.attributes['href'] ?? '';
         var movieName = movieItem
             .querySelector('.myui-vodlist__detail .title a'
         )
@@ -324,7 +335,11 @@ class IMapleManager {
             .querySelector('.myui-vodlist__detail p'
         )
             ?.text ?? "";
-        var movie = Movie(name: movieName, playlist: [], thumbnailUrl: movieThumbnail, actor: movieActor
+        var movie = Movie(name: movieName,
+            playlist: [],
+            detailUrl: movieDetailUrl,
+            thumbnailUrl: movieThumbnail,
+            actor: movieActor
         );
         return SearchResultItem(movie, movieUrl
         );
@@ -433,9 +448,21 @@ class IMapleManager {
             .elementAt(3
         )
             .text ?? "";
+        var movieDetailUrl = searchItem
+            .querySelector('.detail'
+        )
+            ?.children
+            .elementAt(5
+        )
+            .querySelectorAll('a'
+        )
+            .elementAt(1
+        )
+            .attributes['href'] ?? '';
         var movie = Movie(
             name: movieName,
             playlist: [],
+            detailUrl: movieDetailUrl,
             actor: movieActor,
             author: movieAuthor,
             description: movieDescription,
@@ -458,6 +485,8 @@ class IMapleManager {
   }
 
   Future<String> getMoviePlayLink(String episodeLink) async {
+//    return episodeLink;
+
     final response = await http.get(
       Uri.parse(IMapleManager.baseUrl + episodeLink),
       headers: <String, String>{
