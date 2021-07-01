@@ -1,10 +1,31 @@
+import 'package:catcher/catcher.dart';
 import 'package:flutter/material.dart';
-import 'package:imaplemobile/page/movie_menu.dart';
+import 'package:flutter/services.dart';
 
-import 'player.dart';
+import 'page/main_menu.dart';
 
 void main() {
-  runApp(MyApp());
+  /// Debug configuration with dialog report mode and console handler. It will show dialog and once user accepts it, error will be shown   /// in console.
+  CatcherOptions debugOptions =
+      CatcherOptions(SilentReportMode(), [ConsoleHandler()]);
+
+  /// Release configuration. Same as above, but once user accepts dialog, user will be prompted to send email with crash to support.
+  CatcherOptions releaseOptions = CatcherOptions(
+      DialogReportMode(),
+      [
+        //EmailManualHandler(["support@email.com"]),
+        ConsoleHandler()
+      ],
+      handleSilentError: false, filterFunction: (report) {
+    return !(report.errorDetails?.exception is PlatformException);
+  });
+
+  Catcher(
+      rootWidget: MyApp(),
+      debugConfig: debugOptions,
+      releaseConfig: releaseOptions);
+
+  //runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -12,6 +33,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: Catcher.navigatorKey,
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -25,7 +47,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MainMenu(), // MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
@@ -121,14 +143,13 @@ class _MyHomePageState extends State<MyHomePage> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => MovieMenu()
-                        ),
+                        //MaterialPageRoute(builder: (context) => MovieMenu(movieType: MovieType.Movie,)),
+                        MaterialPageRoute(builder: (context) => MainMenu()),
                       );
 //                      Navigator.push(
 //                        context,
 //                        MaterialPageRoute(builder: (context) => VideoApp(streamUrl: 'https://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8',)),
 //                      );
-
                     },
                     tooltip: 'Navigate',
                     child: Icon(Icons.navigate_next),

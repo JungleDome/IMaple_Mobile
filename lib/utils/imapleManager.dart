@@ -1,6 +1,8 @@
-import 'package:http/http.dart' as http;
-import 'package:html/parser.dart' as html_parser;
 import 'dart:convert';
+
+import 'package:flutter_hls_parser/flutter_hls_parser.dart';
+import 'package:html/parser.dart' as html_parser;
+import 'package:http/http.dart' as http;
 
 class Movie {
   final String name;
@@ -205,9 +207,29 @@ class IMapleManager {
 
           return new Playlist(sourcePlaylistName, parsedEpisodeLink);
         });
+
+        //Check can the link be played before display to ui
+        // await Future.wait(parsedPlaylist.toList().asMap().entries.map((entry) {
+        //   var index = entry.key;
+        //   var e = entry.value;
+        //   return e.episodeLink.values.map((e2) async {
+        //     var isValid = await checkValidMoviePlayLink(e2.toString());
+        //     if (!isValid) {
+        //       var entryKey = parsedPlaylist.elementAt(index).episodeLink.entries.firstWhere((element) => element.value == e2.toString()).key;
+        //       parsedPlaylist.elementAt(index).episodeLink.update(entryKey, (value) => '');
+        //     }
+        //   });
+        // }).expand((e) => e));
+
         return Movie(
             name: movieName,
-            playlist: parsedPlaylist.toList(),
+            playlist: parsedPlaylist
+                .where((element) =>
+                    element.episodeLink.values
+                        .where((element2) => element2 != '')
+                        .length >
+                    0)
+                .toList(),
             detailUrl: detailUrl,
             altName: movieAltName,
             actor: movieActor,
@@ -496,22 +518,70 @@ class IMapleManager {
 
     if (response.statusCode == 200) {
       var doc = html_parser.parse(response.body);
-      var moviePlayData =
-          doc.body
-              ?.querySelector('.myui-player__video'
-          )
-              ?.querySelector("script"
-          )
-              ?.innerHtml ?? "";
+      var moviePlayData = doc.body
+              ?.querySelector('.myui-player__video')
+              ?.querySelector("script")
+              ?.innerHtml ??
+          "";
       var regex = RegExp(r'.*{(.*)}.*');
       var match = regex.firstMatch(moviePlayData);
 
-      var moviePlayDataJsonString = match?.group(1) ?? "";
-      Map<String, dynamic> moviePlayDataJson = jsonDecode('{' + moviePlayDataJsonString + '}'
-      );
+      var moviePlayDataJsonString = match?.group(1) ?? '_:1';
+      Map<String, dynamic> moviePlayDataJson =
+          jsonDecode('{' + moviePlayDataJsonString + '}');
       return moviePlayDataJson['url'] ?? '';
     } else {
       throw Exception("Failed to fetch movie play url.");
+    }
+  }
+
+  Future<bool> checkValidMoviePlayLink(String episodeLink) async {
+    final response = await http.get(
+      Uri.parse(IMapleManager.baseUrl + episodeLink),
+      headers: <String, String>{
+        'Content-Type': 'text/html; charset=UTF-8',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      var doc = html_parser.parse(response.body);
+      var moviePlayData = doc.body
+              ?.querySelector('.myui-player__video')
+              ?.querySelector("script")
+              ?.innerHtml ??
+          "";
+      var regex = RegExp(r'.*{(.*)}.*');
+      var match = regex.firstMatch(moviePlayData);
+
+      var moviePlayDataJsonString = match?.group(1) ?? '_:1';
+      Map<String, dynamic> moviePlayDataJson =
+          jsonDecode('{' + moviePlayDataJsonString + '}');
+      var playlink = moviePlayDataJson['url'] ?? '';
+
+      try {
+        var response2 = await http.get(
+          Uri.parse(playlink),
+          headers: <String, String>{
+            'Content-Type': 'text/html; charset=UTF-8',
+          },
+        );
+
+        if (response2.statusCode == 200) {
+          try {
+            await HlsPlaylistParser.create()
+                .parseString(Uri.parse(playlink), response.body);
+            return true;
+          } on Exception {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      } catch (ex) {
+        return false;
+      }
+    } else {
+      throw Exception("Failed to check movie play url.");
     }
   }
 }

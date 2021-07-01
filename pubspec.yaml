@@ -26,6 +26,10 @@ dependencies:
   collection: ^1.15.0
   convert: ^3.0.0
   video_player: ^2.1.5
+  localstorage: ^4.0.0+1
+  flutter_hls_parser: ^2.0.0
+  # Production plugin
+  catcher: ^0.6.6
   # QOL plugin
   better_player: ^0.0.69
   infinite_scroll_pagination: ^3.0.1+1
