@@ -1,14 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/material.dart';
 import 'package:imaplemobile/page/movie_details.dart';
-import 'package:imaplemobile/utils/futureHelper.dart';
-import 'package:imaplemobile/utils/imapleManager.dart';
+import 'package:imaplemobile/utils/future_helper.dart';
+import 'package:imaplemobile/utils/imaple_manager.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 class SearchPage extends StatefulWidget {
   final String searchText;
 
-  SearchPage({Key? key, required this.searchText}) : super(key: key);
+  SearchPage({Key? key, this.searchText = ''}) : super(key: key);
 
   @override
   SearchPageState createState() => SearchPageState(searchText: searchText);
@@ -17,22 +18,23 @@ class SearchPage extends StatefulWidget {
 class SearchPageState extends State<SearchPage> {
   String searchText;
 
-  SearchPageState({required this.searchText}) {
+  SearchPageState({this.searchText = ''}) {
     searchText = searchText;
   }
 
-  static const _pageSize = 48;
-
-  final PagingController<int, Movie> _pagingController =
-      PagingController(firstPageKey: 1);
+  final PagingController<int, Movie> _pagingController = PagingController(firstPageKey: 1);
   final _imapleManager = IMapleManager();
-  String selectedMovieCategoryLink = '';
 
   Future<void> _fetchPage(int pageKey) async {
-    if (selectedMovieCategoryLink == '') return;
+    //if (searchText == '') return;
 
     try {
-      print('PageKey: ${pageKey}');
+      if (searchText == '') {
+        _pagingController.appendLastPage(List.empty());
+        return;
+      }
+      //print('PageKey: ${pageKey}');
+      //print('SearchText: ${searchText}');
       SearchResult newItems = await FutureHelper.retry(
           3, _imapleManager.searchMovie(searchText, pageNumber: pageKey),
           delay: Duration(seconds: 5));
@@ -48,8 +50,9 @@ class SearchPageState extends State<SearchPage> {
     }
   }
 
-  void _changeMovieMenuItem(String categoryUrl) {
-    selectedMovieCategoryLink = categoryUrl;
+  void _changeSearchText(String searchText2) {
+    searchText = searchText2;
+    //print('SearchText2: ${searchText2}');
     _pagingController.refresh();
   }
 
@@ -77,15 +80,24 @@ class SearchPageState extends State<SearchPage> {
         child: isHorizontal
             ? Flex(
                 verticalDirection: VerticalDirection.down,
-                direction: Axis.horizontal,
+                direction: Axis.vertical,
                 mainAxisSize: MainAxisSize.max,
                 children: [
+                  Expanded(
+                    child: TextField(
+                      onChanged: (String text) =>
+                          EasyDebounce.debounce('search_search', const Duration(milliseconds: 500), () {
+                        _changeSearchText(text);
+                      }),
+                      decoration:
+                          InputDecoration(border: OutlineInputBorder(), hintText: '搜索电影...   (支持拼音/简体输入法)'),
+                    ),
+                  ),
                   Expanded(
                     flex: 10,
                     child: Container(
                       child: PagedGridView<int, Movie>(
-                        padding:
-                            EdgeInsets.only(top: 10, bottom: 10, right: 10),
+                        padding: EdgeInsets.only(top: 10, bottom: 10, right: 10),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: (media.size.width / 220).round(),
                             crossAxisSpacing: 15,
@@ -93,6 +105,18 @@ class SearchPageState extends State<SearchPage> {
                             childAspectRatio: 0.6),
                         pagingController: _pagingController,
                         builderDelegate: PagedChildBuilderDelegate<Movie>(
+                          noItemsFoundIndicatorBuilder: (_) {
+                            return searchText == ''
+                                ? Container()
+                                : Container(
+                                    padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                                    child: Text(
+                                      '抱歉, 没有找到您想要的结果哦！',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                    ),
+                                  );
+                          },
                           itemBuilder: (context, item, index) {
                             return Container(
                               child: FittedBox(
@@ -102,10 +126,9 @@ class SearchPageState extends State<SearchPage> {
                                   child: TextButton(
                                     style: TextButton.styleFrom(
                                         primary: Colors.black,
-                                        textStyle: TextStyle(
-                                            fontWeight: FontWeight.normal)),
+                                        textStyle: TextStyle(fontWeight: FontWeight.normal)),
                                     onPressed: () {
-                                      print('pressed ${item.name}');
+                                      //print('pressed ${item.name}');
                                       if (item.detailUrl != '') {
                                         Navigator.push(
                                           context,
@@ -123,31 +146,24 @@ class SearchPageState extends State<SearchPage> {
                                           width: 300,
                                           child: CachedNetworkImage(
                                               fit: BoxFit.cover,
-                                              placeholder: (context, _) => Image(
-                                                  image: AssetImage(
-                                                      'assets/images/load.png')),
-                                              errorWidget:
-                                                  (context, url, err) => Image(
-                                                      image: AssetImage(
-                                                          'assets/images/load.png')),
+                                              placeholder: (context, _) =>
+                                                  Image(image: AssetImage('assets/images/load.png')),
+                                              errorWidget: (context, url, err) =>
+                                                  Image(image: AssetImage('assets/images/load.png')),
                                               imageUrl: item.thumbnailUrl),
                                         ),
                                         Container(
-                                          padding: const EdgeInsets.only(
-                                              top: 10, bottom: 2),
+                                          padding: const EdgeInsets.only(top: 10, bottom: 2),
                                           decoration: BoxDecoration(
                                             border: Border(
                                               bottom: BorderSide(
                                                 color: Colors.black38,
-                                                width:
-                                                    1.0, // Underline thickness
+                                                width: 1.0, // Underline thickness
                                               ),
                                             ),
                                           ),
-                                          child: Text(item.name,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .headline6),
+                                          child:
+                                              Text(item.name, style: Theme.of(context).textTheme.headline6),
                                         )
                                       ],
                                     ),
@@ -167,12 +183,19 @@ class SearchPageState extends State<SearchPage> {
                 //direction: Axis.vertical,
                 mainAxisSize: MainAxisSize.max,
                 children: [
+                  TextField(
+                    onChanged: (String text) =>
+                        EasyDebounce.debounce('search_search', const Duration(milliseconds: 500), () {
+                      _changeSearchText(text);
+                    }),
+                    decoration:
+                        InputDecoration(border: OutlineInputBorder(), hintText: '搜索电影...   (支持拼音/简体输入法)'),
+                  ),
                   Expanded(
                     //flex: 10,
                     child: Container(
                       child: PagedGridView<int, Movie>(
-                        padding: EdgeInsets.only(
-                            top: 10, bottom: 10, right: 5, left: 5),
+                        padding: EdgeInsets.only(top: 10, bottom: 10, right: 5, left: 5),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: (media.size.width / 220).round(),
                             crossAxisSpacing: 15,
@@ -180,6 +203,18 @@ class SearchPageState extends State<SearchPage> {
                             childAspectRatio: 0.6),
                         pagingController: _pagingController,
                         builderDelegate: PagedChildBuilderDelegate<Movie>(
+                          noItemsFoundIndicatorBuilder: (_) {
+                            return searchText == ''
+                                ? Container()
+                                : Container(
+                                    padding: EdgeInsets.fromLTRB(0, 10, 0, 0),
+                                    child: Text(
+                                      '抱歉, 没有找到您想要的结果哦！',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                    ),
+                                  );
+                          },
                           itemBuilder: (context, item, index) {
                             return Container(
                               child: FittedBox(
@@ -189,10 +224,9 @@ class SearchPageState extends State<SearchPage> {
                                   child: TextButton(
                                     style: TextButton.styleFrom(
                                         primary: Colors.black,
-                                        textStyle: TextStyle(
-                                            fontWeight: FontWeight.normal)),
+                                        textStyle: TextStyle(fontWeight: FontWeight.normal)),
                                     onPressed: () {
-                                      print('pressed ${item.name}');
+                                      //print('pressed ${item.name}');
                                       if (item.detailUrl != '') {
                                         Navigator.push(
                                           context,
@@ -210,28 +244,22 @@ class SearchPageState extends State<SearchPage> {
                                           width: 300,
                                           child: CachedNetworkImage(
                                               fit: BoxFit.cover,
-                                              placeholder: (context, _) => Image(
-                                                  image: AssetImage(
-                                                      'assets/images/load.png')),
-                                              errorWidget:
-                                                  (context, url, err) => Image(
-                                                      image: AssetImage(
-                                                          'assets/images/load.png')),
+                                              placeholder: (context, _) =>
+                                                  Image(image: AssetImage('assets/images/load.png')),
+                                              errorWidget: (context, url, err) =>
+                                                  Image(image: AssetImage('assets/images/load.png')),
                                               imageUrl: item.thumbnailUrl),
                                         ),
                                         Container(
-                                          padding: const EdgeInsets.only(
-                                              top: 10, bottom: 2),
+                                          padding: const EdgeInsets.only(top: 10, bottom: 2),
                                           decoration: BoxDecoration(
                                               border: Border(
                                                   bottom: BorderSide(
                                             color: Colors.black38,
                                             width: 1.0, // Underline thickness
                                           ))),
-                                          child: Text(item.name,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .headline6),
+                                          child:
+                                              Text(item.name, style: Theme.of(context).textTheme.headline6),
                                         )
                                       ],
                                     ),

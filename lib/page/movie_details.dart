@@ -1,8 +1,8 @@
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:imaplemobile/utils/imapleManager.dart';
+import 'package:imaplemobile/utils/imaple_manager.dart';
+import 'package:imaplemobile/utils/storage_helper.dart';
 
 import '../player.dart';
 
@@ -24,12 +24,13 @@ class MovieDetailState extends State<MovieDetail> with TickerProviderStateMixin 
 
   var selectedSource = '';
 
-  late var tabBarItem;
-  late var tabBarViewItem;
+  late List<Widget> tabBarItem = List.empty();
+  late List<Widget> tabBarViewItem = List.empty();
 
   var _scrollViewController;
   var _tabController;
   var _imapleManager = IMapleManager();
+  late Future<Movie> fetchMovieDetail = _imapleManager.getMovie(movieUrl);
 
   @override
   void initState() {
@@ -53,66 +54,71 @@ class MovieDetailState extends State<MovieDetail> with TickerProviderStateMixin 
     return Scaffold(
       body: SafeArea(
         child: FutureBuilder(
-          future: _imapleManager.getMovie(movieUrl),
+          future: fetchMovieDetail,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               var movie = snapshot.data as Movie;
-              tabBarItem = movie.playlist
-                  .map<Widget>(
-                    (playlist) => Tab(
-                      child: Container(
-                        padding: EdgeInsets.only(left: 20, right: 20),
-                        child: Text('${playlist.source}'),
-                      ),
-                    ),
-                  )
-                  .toList();
-              _tabController =
-                  TabController(vsync: this, length: tabBarItem.length);
-              tabBarViewItem = movie.playlist.map<Widget>((item) {
-                List<Widget> episodeButtons = [];
-
-                item.episodeLink.forEach((key, value) {
-                  episodeButtons.add(
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        primary: Colors.black,
-                        textStyle: TextStyle(fontWeight: FontWeight.normal),
-                      ),
-                      onPressed: () {
-                        print('play Episode: ${key}, Link: ${value}');
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => VideoPlayer(
-                              streamUrl: value,
-                            ),
-                          ),
-                        );
-                      },
-                      child: FittedBox(
+              if (tabBarItem.isEmpty) {
+                tabBarItem = movie.playlist
+                    .map<Widget>(
+                      (playlist) => Tab(
                         child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
-                          //color: Colors.black26,
-                          child: Center(
-                            child: Text('${key}'),
+                          padding: EdgeInsets.only(left: 20, right: 20),
+                          child: Text('${playlist.source}'),
+                        ),
+                      ),
+                    )
+                    .toList();
+                _tabController = TabController(vsync: this, length: tabBarItem.length);
+              }
+
+              if (tabBarViewItem.isEmpty) {
+                tabBarViewItem = movie.playlist.map<Widget>((item) {
+                  List<Widget> episodeButtons = [];
+
+                  item.episodeLink.forEach((key, value) {
+                    episodeButtons.add(
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          primary: Colors.black,
+                          textStyle: TextStyle(fontWeight: FontWeight.normal),
+                        ),
+                        onPressed: () {
+                          //print('play Episode: ${key}, Link: ${value}');
+                          StorageHelper.storage.setItem('lastPlayName', '${movie.name} (${key})');
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => VideoPlayer(
+                                streamUrl: value,
+                              ),
+                            ),
+                          );
+                        },
+                        child: FittedBox(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(),
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
+                            //color: Colors.black26,
+                            child: Center(
+                              child: Text('${key}'),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                });
+                    );
+                  });
 
-                var tabView = Wrap(
-                  runSpacing: 20,
-                  children: episodeButtons,
-                );
-                return tabView;
-              }).toList();
+                  var tabView = Wrap(
+                    runSpacing: 20,
+                    children: episodeButtons,
+                  );
+                  return tabView;
+                }).toList();
+              }
 
               return NestedScrollView(
                 controller: _scrollViewController,
@@ -127,8 +133,7 @@ class MovieDetailState extends State<MovieDetail> with TickerProviderStateMixin 
                         mainAxisSize: MainAxisSize.max,
                         children: [
                           Container(
-                            padding:
-                                EdgeInsets.only(left: 10, top: 10, right: 10),
+                            padding: EdgeInsets.only(left: 10, top: 10, right: 10),
                             width: MediaQuery.of(context).size.width,
                             child: Flex(
                               direction: Axis.horizontal,
@@ -138,12 +143,10 @@ class MovieDetailState extends State<MovieDetail> with TickerProviderStateMixin 
                                   flex: isHorizontal ? 3 : 5,
                                   child: CachedNetworkImage(
                                       fit: BoxFit.cover,
-                                      placeholder: (context, _) => Image(
-                                          image: AssetImage(
-                                              'assets/images/load.png')),
-                                      errorWidget: (context, url, err) => Image(
-                                          image: AssetImage(
-                                              'assets/images/load.png')),
+                                      placeholder: (context, _) =>
+                                          Image(image: AssetImage('assets/images/load.png')),
+                                      errorWidget: (context, url, err) =>
+                                          Image(image: AssetImage('assets/images/load.png')),
                                       imageUrl: movie.thumbnailUrl),
                                 ),
                                 Expanded(
@@ -152,57 +155,38 @@ class MovieDetailState extends State<MovieDetail> with TickerProviderStateMixin 
                                     padding: EdgeInsets.only(left: 10),
                                     child: Column(
                                       mainAxisSize: MainAxisSize.max,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Padding(
-                                            padding:
-                                                EdgeInsets.only(bottom: 10),
+                                            padding: EdgeInsets.only(bottom: 10),
                                             child: Text(movie.name,
                                                 overflow: TextOverflow.ellipsis,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .headline6)),
+                                                style: Theme.of(context).textTheme.headline6)),
                                         Padding(
-                                            padding:
-                                                EdgeInsets.only(bottom: 10),
+                                            padding: EdgeInsets.only(bottom: 10),
                                             child: Text(movie.author,
                                                 overflow: TextOverflow.ellipsis,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyText1)),
+                                                style: Theme.of(context).textTheme.bodyText1)),
                                         Padding(
-                                            padding:
-                                                EdgeInsets.only(bottom: 10),
+                                            padding: EdgeInsets.only(bottom: 10),
                                             child: Text(movie.actor,
                                                 overflow: TextOverflow.ellipsis,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyText1)),
+                                                style: Theme.of(context).textTheme.bodyText1)),
                                         Padding(
-                                            padding:
-                                                EdgeInsets.only(bottom: 10),
+                                            padding: EdgeInsets.only(bottom: 10),
                                             child: Text(movie.publishYear,
                                                 overflow: TextOverflow.ellipsis,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyText1)),
+                                                style: Theme.of(context).textTheme.bodyText1)),
                                         Padding(
-                                            padding:
-                                                EdgeInsets.only(bottom: 10),
+                                            padding: EdgeInsets.only(bottom: 10),
                                             child: Text(movie.description,
                                                 overflow: TextOverflow.clip,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyText1)),
+                                                style: Theme.of(context).textTheme.bodyText1)),
                                         Padding(
-                                            padding:
-                                                EdgeInsets.only(bottom: 10),
+                                            padding: EdgeInsets.only(bottom: 10),
                                             child: Text(movie.lastUpdate,
                                                 overflow: TextOverflow.ellipsis,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyText1)),
+                                                style: Theme.of(context).textTheme.bodyText1)),
                                       ],
                                     ),
                                   ),
@@ -219,9 +203,8 @@ class MovieDetailState extends State<MovieDetail> with TickerProviderStateMixin 
                       isScrollable: true,
                       unselectedLabelColor: Colors.redAccent,
                       indicatorSize: TabBarIndicatorSize.label,
-                      indicator: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: Colors.redAccent),
+                      indicator:
+                          BoxDecoration(borderRadius: BorderRadius.circular(20), color: Colors.redAccent),
                       tabs: tabBarItem,
                     ),
                   ),

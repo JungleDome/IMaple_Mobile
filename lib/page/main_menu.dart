@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:imaplemobile/page/movie_menu.dart';
-import 'package:imaplemobile/utils/imapleManager.dart';
+import 'package:imaplemobile/page/search_page.dart';
+import 'package:imaplemobile/utils/imaple_manager.dart';
+import 'package:imaplemobile/utils/storage_helper.dart';
 import 'package:imaplemobile/widgets/menu_button.dart';
 
 import '../player.dart';
@@ -13,7 +15,7 @@ class MainMenu extends StatefulWidget {
 class MainMenuState extends State<MainMenu> {
   final menuButton = [
     {"Name": "电影", "Type": MovieType.Movie},
-    {"Name": "连戏剧", "Type": MovieType.Drama},
+    {"Name": "连续剧", "Type": MovieType.Drama},
     {"Name": "综艺", "Type": MovieType.VarietyShow},
     {"Name": "动漫", "Type": MovieType.Anime}
   ];
@@ -21,7 +23,7 @@ class MainMenuState extends State<MainMenu> {
   Widget buildMenuButton(int index) {
     return MenuButton(
       onPressed: () {
-        print('pressed ${menuButton[index]["Name"]}');
+        //print('pressed ${menuButton[index]["Name"]}');
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -60,9 +62,7 @@ class MainMenuState extends State<MainMenu> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => VideoPlayer(
-                                          streamUrl: '',
-                                        ),
+                                        builder: (context) => SearchPage(),
                                       ),
                                     );
                                   },
@@ -76,17 +76,17 @@ class MainMenuState extends State<MainMenu> {
                                 aspectRatio: 1.1,
                                 child: MenuButton(
                                   onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => VideoPlayer(
-                                          streamUrl: '',
-                                        ),
-                                      ),
-                                    );
+                                    // Navigator.push(
+                                    //   context,
+                                    //   MaterialPageRoute(
+                                    //     builder: (context) => MainMenu(
+                                    //       streamUrl: '',
+                                    //     ),
+                                    //   ),
+                                    // );
                                   },
-                                  text: '观看记录',
-                                  icon: Icon(Icons.history),
+                                  text: '别按我 😖!',
+                                  //icon: Icon(Icons.history),
                                 ),
                               ),
                             ),
@@ -94,7 +94,7 @@ class MainMenuState extends State<MainMenu> {
                         ),
                         Row(
                           children: [
-                            Expanded(
+                            StorageHelper.storage.getItem('lastPlayName') == null ? Container() : Expanded(
                               child: AspectRatio(
                                 aspectRatio: 2.2,
                                 child: MenuButton(
@@ -103,12 +103,14 @@ class MainMenuState extends State<MainMenu> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => VideoPlayer(
-                                          streamUrl: '',
+                                          streamUrl: StorageHelper.storage.getItem('lastPlayStreamUrl'),
+                                          playAtMillisecondDuration: StorageHelper.storage.getItem('lastPlayDuration'),
                                         ),
                                       ),
                                     );
                                   },
                                   text: '继续观看',
+                                  subText: StorageHelper.storage.getItem('lastPlayName') ?? '',
                                   icon: Icon(Icons.play_arrow),
                                 ),
                               ),
@@ -176,9 +178,7 @@ class MainMenuState extends State<MainMenu> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => VideoPlayer(
-                                    streamUrl: '',
-                                  ),
+                                  builder: (context) => SearchPage(),
                                 ),
                               );
                             },
@@ -192,17 +192,17 @@ class MainMenuState extends State<MainMenu> {
                           aspectRatio: 1.1,
                           child: MenuButton(
                             onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => VideoPlayer(
-                                    streamUrl: '',
-                                  ),
-                                ),
-                              );
+                              // Navigator.push(
+                              //   context,
+                              //   MaterialPageRoute(
+                              //     builder: (context) => VideoPlayer(
+                              //       streamUrl: '',
+                              //     ),
+                              //   ),
+                              // );
                             },
-                            text: '观看记录',
-                            icon: Icon(Icons.history),
+                            text: '别按我 😖!',
+                            //icon: Icon(Icons.history),
                           ),
                         ),
                       ),
@@ -210,7 +210,7 @@ class MainMenuState extends State<MainMenu> {
                   ),
                   Row(
                     children: [
-                      Expanded(
+                      StorageHelper.storage.getItem('lastPlayName') == null ? Container() : Expanded(
                         child: AspectRatio(
                           aspectRatio: 2.2,
                           child: MenuButton(
@@ -219,12 +219,14 @@ class MainMenuState extends State<MainMenu> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => VideoPlayer(
-                                    streamUrl: '',
+                                    streamUrl: StorageHelper.storage.getItem('lastPlayStreamUrl'),
+                                    playAtMillisecondDuration: StorageHelper.storage.getItem('lastPlayDuration'),
                                   ),
                                 ),
                               );
                             },
                             text: '继续观看',
+                            subText: StorageHelper.storage.getItem('lastPlayName') ?? '',
                             icon: Icon(Icons.play_arrow),
                           ),
                         ),

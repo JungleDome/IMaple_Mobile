@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "350324850788",
+    "project_id": "imaplemobile",
+    "storage_bucket": "imaplemobile.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:350324850788:android:a5cb4dba389e13ec039f71",
+        "android_client_info": {
+          "package_name": "com.jungledome.imaplemobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "350324850788-k8o0l5thv5u2c12rg7gh8to6i1tv5kb7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-LIm6LaUpnjGTYysf0STVVCM6ERkkY-g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "350324850788-k8o0l5thv5u2c12rg7gh8to6i1tv5kb7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

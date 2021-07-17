@@ -1,29 +1,37 @@
 import 'package:catcher/catcher.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'page/main_menu.dart';
+import 'utils/storage_helper.dart';
 
-void main() {
-  /// Debug configuration with dialog report mode and console handler. It will show dialog and once user accepts it, error will be shown   /// in console.
-  CatcherOptions debugOptions =
-      CatcherOptions(SilentReportMode(), [ConsoleHandler()]);
-
-  /// Release configuration. Same as above, but once user accepts dialog, user will be prompted to send email with crash to support.
-  CatcherOptions releaseOptions = CatcherOptions(
-      DialogReportMode(),
-      [
-        //EmailManualHandler(["support@email.com"]),
-        ConsoleHandler()
-      ],
+void main() async {
+  CatcherOptions debugOptions = CatcherOptions(SilentReportMode(), [ConsoleHandler()],
       handleSilentError: false, filterFunction: (report) {
-    return !(report.errorDetails?.exception is PlatformException);
+    if (report.error?.message != null) {
+      if (report.error.message.toString() ==
+          'Video player had error com.google.android.exoplayer2.ExoPlaybackException: Source error') {
+        return false;
+      }
+    }
+    return true;
   });
 
-  Catcher(
-      rootWidget: MyApp(),
-      debugConfig: debugOptions,
-      releaseConfig: releaseOptions);
+  CatcherOptions releaseOptions = CatcherOptions(DialogReportMode(), [ConsoleHandler()],
+      handleSilentError: false, filterFunction: (report) {
+    if (report.error?.message != null) {
+      if (report.error.message.toString().contains('Video player had error') && report.error.message.toString().contains('Source error')) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  await StorageHelper.ready;
+
+  Catcher(rootWidget: MyApp(), debugConfig: debugOptions, releaseConfig: releaseOptions);
 
   //runApp(MyApp());
 }

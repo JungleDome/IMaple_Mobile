@@ -5,6 +5,7 @@ class MenuButton extends StatelessWidget {
   void Function()? onPressed;
   void Function()? onLongPress;
   String text;
+  String subText;
   Icon? icon;
 
   MenuButton({
@@ -16,6 +17,7 @@ class MenuButton extends StatelessWidget {
     bool autofocus = false,
     Clip clipBehavior = Clip.none,
     String this.text = '',
+    String this.subText = '',
     Icon? this.icon,
   });
 
@@ -42,7 +44,9 @@ class MenuButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               this.icon ?? Container(),
-              Text(this.text, style: Theme.of(context).textTheme.headline6),
+              Text(this.text,textAlign: TextAlign.center, style: Theme.of(context).textTheme.headline6),
+              this.subText == '' ? Container() : Padding(padding: EdgeInsets.only(top:10),),
+              this.subText == '' ? Container() : Text(this.subText,textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyText1),
             ],
           ),
         ),

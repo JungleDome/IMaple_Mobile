@@ -5,7 +5,7 @@
 
    <application
        android:icon="@mipmap/imaple_logo"
-       android:label="Imaple Mobile">
+       android:label="iMaple Mobile">
        <activity
            android:name=".MainActivity"
            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"

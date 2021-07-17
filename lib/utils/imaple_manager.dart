@@ -99,7 +99,7 @@ class IMapleManager {
               ?.querySelector('.myui-container-bg .myui-content__detail'
           )
               ?.children
-              ?.elementAt(2
+              .elementAt(2
           )
               .text ??
               "";
@@ -108,7 +108,7 @@ class IMapleManager {
               ?.querySelector('.myui-container-bg .myui-content__detail'
           )
               ?.children
-              ?.elementAt(7
+              .elementAt(7
           )
               .text ??
               "";
@@ -117,7 +117,7 @@ class IMapleManager {
               ?.querySelector('.myui-container-bg .myui-content__detail'
           )
               ?.children
-              ?.elementAt(6
+              .elementAt(6
           )
               .text ??
               "";
@@ -126,7 +126,7 @@ class IMapleManager {
               ?.querySelector('.myui-container-bg .myui-content__detail'
           )
               ?.children
-              ?.elementAt(5
+              .elementAt(5
           )
               .text ??
               "";
@@ -135,7 +135,7 @@ class IMapleManager {
               ?.querySelector('.myui-container-bg .myui-content__detail'
           )
               ?.children
-              ?.elementAt(4
+              .elementAt(4
           )
               .text ??
               "";
@@ -144,7 +144,7 @@ class IMapleManager {
               ?.querySelector('.myui-container-bg .myui-content__detail'
           )
               ?.children
-              ?.elementAt(3
+              .elementAt(3
           )
               .text ??
               "";
@@ -153,7 +153,7 @@ class IMapleManager {
               ?.querySelector('.myui-container-bg .myui-content__detail'
           )
               ?.children
-              ?.elementAt(3
+              .elementAt(3
           )
               .text ??
               "";
@@ -162,7 +162,7 @@ class IMapleManager {
               ?.querySelector('.myui-container-bg .myui-content__detail'
           )
               ?.children
-              ?.elementAt(3
+              .elementAt(3
           )
               .text ??
               "";
@@ -268,7 +268,7 @@ class IMapleManager {
       if ((document.body
           ?.querySelectorAll('.myui-screen__list'
       )
-          ?.length ?? 0) == 0) return [];
+          .length ?? 0) == 0) return [];
       var menuItems =
           document.body
               ?.querySelectorAll('.myui-screen__list'
@@ -526,7 +526,7 @@ class IMapleManager {
       var regex = RegExp(r'.*{(.*)}.*');
       var match = regex.firstMatch(moviePlayData);
 
-      var moviePlayDataJsonString = match?.group(1) ?? '_:1';
+      var moviePlayDataJsonString = match?.group(1) ?? 'a:1';
       Map<String, dynamic> moviePlayDataJson =
           jsonDecode('{' + moviePlayDataJsonString + '}');
       return moviePlayDataJson['url'] ?? '';
@@ -553,7 +553,7 @@ class IMapleManager {
       var regex = RegExp(r'.*{(.*)}.*');
       var match = regex.firstMatch(moviePlayData);
 
-      var moviePlayDataJsonString = match?.group(1) ?? '_:1';
+      var moviePlayDataJsonString = match?.group(1) ?? 'a:1';
       Map<String, dynamic> moviePlayDataJson =
           jsonDecode('{' + moviePlayDataJsonString + '}');
       var playlink = moviePlayDataJson['url'] ?? '';
