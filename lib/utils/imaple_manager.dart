@@ -70,6 +70,15 @@ class MenuItem {
   MenuItem(this.genreName, this.urlLink);
 }
 
+class MoviePlayDetail {
+  final String streamUrl;
+  final String? nextEpisodePlayLink;
+  final String movieName;
+  final String episodeName;
+
+  MoviePlayDetail({required this.streamUrl, this.nextEpisodePlayLink, this.movieName = '', this.episodeName = ''});
+}
+
 class IMapleManager {
   static const String baseUrl = 'https://imaple.co';
   static const searchPageSize = 21;
@@ -506,7 +515,7 @@ class IMapleManager {
     }
   }
 
-  Future<String> getMoviePlayLink(String episodeLink) async {
+  Future<MoviePlayDetail> getMoviePlayLink(String episodeLink) async {
 //    return episodeLink;
 
     final response = await http.get(
@@ -518,6 +527,7 @@ class IMapleManager {
 
     if (response.statusCode == 200) {
       var doc = html_parser.parse(response.body);
+      var movieDetailData = doc.body?.querySelector('.myui-panel__head h3');
       var moviePlayData = doc.body
               ?.querySelector('.myui-player__video')
               ?.querySelector("script")
@@ -529,7 +539,11 @@ class IMapleManager {
       var moviePlayDataJsonString = match?.group(1) ?? 'a:1';
       Map<String, dynamic> moviePlayDataJson =
           jsonDecode('{' + moviePlayDataJsonString + '}');
-      return moviePlayDataJson['url'] ?? '';
+      var streamUrl = moviePlayDataJson['url'] ?? '';
+      var nextEpisodePlayLink = moviePlayDataJson['link_next'];
+      var movieName = movieDetailData?.firstChild?.text ?? '';
+      var episodeName = (movieDetailData?.children?.length ?? 0) > 1 ? movieDetailData?.children.elementAt(1).text ?? '' : '';
+      return MoviePlayDetail(streamUrl: streamUrl, nextEpisodePlayLink: nextEpisodePlayLink, movieName: movieName, episodeName: episodeName);
     } else {
       throw Exception("Failed to fetch movie play url.");
     }

@@ -8,17 +8,17 @@ import 'package:flutter/services.dart';
 import 'utils/imaple_manager.dart';
 import 'utils/storage_helper.dart';
 
-class VideoPlayer extends StatefulWidget {
+class LegacyVideoPlayer extends StatefulWidget {
   final String streamUrl;
   final int? playAtMillisecondDuration;
 
-  VideoPlayer({Key? key, required this.streamUrl, this.playAtMillisecondDuration}) : super(key: key);
+  LegacyVideoPlayer({Key? key, required this.streamUrl, this.playAtMillisecondDuration}) : super(key: key);
 
   @override
-  _VideoPlayerState createState() => _VideoPlayerState(streamUrl: this.streamUrl, playAtMillisecondDuration: playAtMillisecondDuration);
+  _LegacyVideoPlayerState createState() => _LegacyVideoPlayerState(streamUrl: this.streamUrl, playAtMillisecondDuration: playAtMillisecondDuration);
 }
 
-class _VideoPlayerState extends State<VideoPlayer> {
+class _LegacyVideoPlayerState extends State<LegacyVideoPlayer> {
   late BetterPlayerController _betterPlayerController;
   var setupDataSource = false;
   var isControlVisible = true;
@@ -26,9 +26,9 @@ class _VideoPlayerState extends State<VideoPlayer> {
   var streamUrl = '';
   int? playAtMillisecondDuration;
   var _imapleManager = IMapleManager();
-  late Future<String> movieStreamUrlFuture = _imapleManager.getMoviePlayLink(streamUrl);
+  late Future<MoviePlayDetail> movieStreamUrlFuture = _imapleManager.getMoviePlayLink(streamUrl);
 
-  _VideoPlayerState({required this.streamUrl, this.playAtMillisecondDuration}) {
+  _LegacyVideoPlayerState({required this.streamUrl, this.playAtMillisecondDuration}) {
     streamUrl = streamUrl;
     playAtMillisecondDuration = playAtMillisecondDuration;
   }
@@ -108,14 +108,14 @@ class _VideoPlayerState extends State<VideoPlayer> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Center(
-        child: FutureBuilder<String>(
+        child: FutureBuilder<MoviePlayDetail>(
           future: movieStreamUrlFuture,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               if (!_betterPlayerController.hasCurrentDataSourceStarted) {
                 BetterPlayerDataSource dataSource = BetterPlayerDataSource(
                   BetterPlayerDataSourceType.network,
-                  snapshot.data!,
+                  snapshot.data!.streamUrl,
                   cacheConfiguration: BetterPlayerCacheConfiguration(
                     useCache: true,
                     preCacheSize: 10 * 1024 * 1024,

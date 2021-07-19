@@ -1,10 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:imaplemobile/page/video_player.dart';
 import 'package:imaplemobile/utils/imaple_manager.dart';
-import 'package:imaplemobile/utils/storage_helper.dart';
-
-import '../player.dart';
 
 class MovieDetail extends StatefulWidget {
   final String movieUrl;
@@ -85,7 +83,7 @@ class MovieDetailState extends State<MovieDetail> with TickerProviderStateMixin 
                         ),
                         onPressed: () {
                           //print('play Episode: ${key}, Link: ${value}');
-                          StorageHelper.storage.setItem('lastPlayName', '${movie.name} (${key})');
+                          //StorageHelper.saveLastMovie('${movie.name} (${key})', movieUrl);
                           Navigator.push(
                             context,
                             MaterialPageRoute(

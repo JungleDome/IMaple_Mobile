@@ -1,16 +1,29 @@
 # imaplemobile
 
-Imaple mobile app
+iMaple mobile app
 
-## Getting Started
+# Getting Started
 
-This project is a starting point for a Flutter application.
+This project is a flutter based mobile app for online movie streaming service [imaple.co](https://imaple.co) or otherwise known as 枫林网.
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+## Features
+* Search using chinese pinyin/chinese word/english word
+* Resume from last played movie
+* List of available movie/drama/entertainment show/anime
+* All video are embedded with chinese subtitle
+* Linked with Firebase analysis
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+## Upcoming Features
+* Autoplay next episode
+* Playback speed control
+* Dpad support for fast forward & rewind
+* Filter based on several category
+
+---
+
+# Installation
+
+1. Run
+`pub get`
