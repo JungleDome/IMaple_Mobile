@@ -25,6 +25,7 @@ class MovieMenuState extends State<MovieMenu> {
   final _imapleManager = IMapleManager();
   String selectedMovieCategoryLink = '';
   var showFilterMenu = false;
+  var enableFilterMenu = false;
   final filterYear = ['2021', '2020', '2019', '2018', '2017'];
   final filterLang_movie = ['國語', '英語', '粵語', '閩南語', '韓語', '日語', '法語', '德語', '其它'];
   final filterLang_drama = ['國語', '英語', '粵語', '閩南語', '韓語', '日語', '其它'];
@@ -142,9 +143,13 @@ class MovieMenuState extends State<MovieMenu> {
               if (snapshot.hasData) {
                 movieMenuItem = snapshot.data as List<MenuItem>;
                 if (movieMenuItem.length > 0) {
-                  if (movieMenuItem.indexWhere((element) => element.urlLink == 'custom_filter') == -1) {
-                    movieMenuItem.insert(0, MenuItem('筛选', 'custom_filter'));
-                    _changeMovieMenuItem(movieMenuItem[1].urlLink);
+                  if (enableFilterMenu) {
+                    if (movieMenuItem.indexWhere((element) => element.urlLink == 'custom_filter') == -1) {
+                      movieMenuItem.insert(0, MenuItem('筛选', 'custom_filter'));
+                      _changeMovieMenuItem(movieMenuItem[1].urlLink); //trigger load item
+                    }
+                  } else {
+                    _changeMovieMenuItem(movieMenuItem[0].urlLink); //trigger load item
                   }
                 }
               }

@@ -542,7 +542,7 @@ class IMapleManager {
       var streamUrl = moviePlayDataJson['url'] ?? '';
       var nextEpisodePlayLink = moviePlayDataJson['link_next'];
       var movieName = movieDetailData?.firstChild?.text ?? '';
-      var episodeName = (movieDetailData?.children?.length ?? 0) > 1 ? movieDetailData?.children.elementAt(1).text ?? '' : '';
+      var episodeName = (movieDetailData?.children?.length ?? 0) > 0 ? movieDetailData?.children.elementAt(0).text ?? '' : '';
       return MoviePlayDetail(streamUrl: streamUrl, nextEpisodePlayLink: nextEpisodePlayLink, movieName: movieName, episodeName: episodeName);
     } else {
       throw Exception("Failed to fetch movie play url.");

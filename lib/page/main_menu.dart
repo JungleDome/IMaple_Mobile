@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:imaplemobile/model/movie_storage.dart';
 import 'package:imaplemobile/page/movie_menu.dart';
 import 'package:imaplemobile/page/search_page.dart';
 import 'package:imaplemobile/page/video_player.dart';
 import 'package:imaplemobile/utils/imaple_manager.dart';
-import 'package:imaplemobile/utils/storage_helper.dart';
 import 'package:imaplemobile/widgets/menu_button.dart';
 
 import 'movie_details.dart';
@@ -39,6 +39,77 @@ class MainMenuState extends State<MainMenu> {
     );
   }
 
+  Widget buildResumeLastPlayButton(Orientation orientation) {
+    var baseButton = MenuButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MovieDetail(
+              movieUrl: MovieStorage.instance.lastPlayDetailUrl!,
+            ),
+          ),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VideoPlayer(
+              streamUrl: MovieStorage.instance.lastPlayPlayUrl!,
+              playAtMillisecondDuration: MovieStorage.instance.lastPlayDuration!,
+            ),
+          ),
+        );
+      },
+      text: '继续观看',
+      subText: MovieStorage.instance.lastPlayName ?? '',
+      icon: Icon(Icons.play_arrow),
+      boxColor: Colors.green,
+    );
+
+    return Visibility(
+      visible: MovieStorage.instance.lastPlayName != null,
+      child: orientation == Orientation.portrait
+          ? Expanded(
+              child: AspectRatio(
+                aspectRatio: 2.2,
+                child: baseButton,
+              ),
+            )
+          : Expanded(
+              flex: 3,
+              child: baseButton,
+            ),
+    );
+  }
+
+  Widget buildSearchButton(Orientation orientation) {
+    var baseButton = MenuButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SearchPage(),
+          ),
+        );
+      },
+      text: '搜索',
+      icon: Icon(Icons.search),
+      boxColor: Colors.blue,
+    );
+
+    return orientation == Orientation.portrait
+        ? Expanded(
+            child: AspectRatio(
+              aspectRatio: 1.1,
+              child: baseButton,
+            ),
+          )
+        : Expanded(
+            flex: 1,
+            child: baseButton,
+          );
+  }
+
   @override
   Widget build(BuildContext context) {
     MediaQueryData media = MediaQuery.of(context);
@@ -66,54 +137,8 @@ class MainMenuState extends State<MainMenu> {
                         child: Flex(
                           direction: Axis.horizontal,
                           children: [
-                            Visibility(
-                              visible: StorageHelper.storage.getItem('lastPlayName') != null,
-                              child: Expanded(
-                                flex: 3,
-                                child: MenuButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => MovieDetail(
-                                          movieUrl: StorageHelper.storage.getItem('lastPlayDetailUrl'),
-                                        ),
-                                      ),
-                                    );
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => VideoPlayer(
-                                          resumeStreamUrl: StorageHelper.storage.getItem('lastPlayStreamUrl'),
-                                          playAtMillisecondDuration:
-                                              StorageHelper.storage.getItem('lastPlayDuration'),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  text: '继续观看',
-                                  subText: StorageHelper.storage.getItem('lastPlayName') ?? '',
-                                  icon: Icon(Icons.play_arrow),
-                                  boxColor: Colors.green,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: MenuButton(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => SearchPage(),
-                                    ),
-                                  );
-                                },
-                                text: '搜索',
-                                icon: Icon(Icons.search),
-                                boxColor: Colors.blue,
-                              ),
-                            ),
+                            buildResumeLastPlayButton(Orientation.landscape),
+                            buildSearchButton(Orientation.landscape),
                             // MenuButton(
                             //       //   onPressed: () {
                             //       //     // Navigator.push(
@@ -161,24 +186,7 @@ class MainMenuState extends State<MainMenu> {
                   children: [
                     Row(
                       children: [
-                        Expanded(
-                          child: AspectRatio(
-                            aspectRatio: 1.1,
-                            child: MenuButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => SearchPage(),
-                                  ),
-                                );
-                              },
-                              text: '搜索',
-                              icon: Icon(Icons.search),
-                              boxColor: Colors.green,
-                            ),
-                          ),
-                        ),
+                        buildSearchButton(Orientation.portrait),
                         Expanded(
                           child: AspectRatio(
                             aspectRatio: 1.1,
@@ -202,54 +210,21 @@ class MainMenuState extends State<MainMenu> {
                     ),
                     Row(
                       children: [
-                        StorageHelper.storage.getItem('lastPlayName') == null
-                            ? Container()
-                            : Expanded(
-                                child: AspectRatio(
-                                  aspectRatio: 2.2,
-                                  child: MenuButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => MovieDetail(
-                                            movieUrl: StorageHelper.storage.getItem('lastPlayDetailUrl'),
-                                          ),
-                                        ),
-                                      );
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => VideoPlayer(
-                                            resumeStreamUrl: StorageHelper.storage.getItem('lastPlayStreamUrl'),
-                                            playAtMillisecondDuration:
-                                                StorageHelper.storage.getItem('lastPlayDuration'),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    text: '继续观看',
-                                    subText: StorageHelper.storage.getItem('lastPlayName') ?? '',
-                                    icon: Icon(Icons.play_arrow),
-                                    boxColor: Colors.blue,
-                                  ),
-                                ),
-                              ),
+                        buildResumeLastPlayButton(Orientation.portrait),
                       ],
                     ),
                     Expanded(
-                      flex: 1,
-                      child: Row(
-                        children: [
-                          Expanded(
-                           child: buildMenuButton(0),
-                          ),
-                          Expanded(
-                            child: buildMenuButton(1),
-                          ),
-                        ],
-                      )
-                    ),
+                        flex: 1,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: buildMenuButton(0),
+                            ),
+                            Expanded(
+                              child: buildMenuButton(1),
+                            ),
+                          ],
+                        )),
                     Expanded(
                         flex: 1,
                         child: Row(
@@ -261,8 +236,7 @@ class MainMenuState extends State<MainMenu> {
                               child: buildMenuButton(3),
                             ),
                           ],
-                        )
-                    ),
+                        )),
                   ],
                 ),
         ),

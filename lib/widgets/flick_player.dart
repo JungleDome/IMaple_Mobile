@@ -1,19 +1,25 @@
 import 'package:flick_video_player/flick_video_player.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:imaplemobile/page/video_player.dart';
 import 'package:imaplemobile/utils/video_player_helper.dart';
+import 'package:imaplemobile/widgets/flick_custom_control.dart';
 import 'package:video_player/video_player.dart';
 
 class FlickPlayer extends StatefulWidget {
   final String streamUrl;
   final int? playAtMillisecondDuration;
   final String? nextEpisodePlayLink;
+  final bool hasNextEpisode;
+  final ChangeNextEpisodeCallback playNextEpisodeCallback;
 
-  FlickPlayer({Key? key, required this.streamUrl, this.playAtMillisecondDuration, this.nextEpisodePlayLink}) : super(key: key);
+  FlickPlayer({Key? key, required this.streamUrl, this.playAtMillisecondDuration, this.nextEpisodePlayLink, this.hasNextEpisode = false, required this.playNextEpisodeCallback})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _FlickPlayerState(streamUrl: this.streamUrl, playAtMillisecondDuration: this.playAtMillisecondDuration);
+    return _FlickPlayerState(
+        streamUrl: this.streamUrl, playAtMillisecondDuration: this.playAtMillisecondDuration, nextEpisodePlayLink: this.nextEpisodePlayLink, hasNextEpisode: this.hasNextEpisode, playNextEpisodeCallback: this.playNextEpisodeCallback);
   }
 }
 
@@ -21,12 +27,19 @@ class _FlickPlayerState extends State<FlickPlayer> {
   late FlickManager _flickManager;
   String streamUrl = '';
   int? playAtMillisecondDuration;
+  String? nextEpisodePlayLink;
+  bool hasNextEpisode;
+  ChangeNextEpisodeCallback playNextEpisodeCallback;
+
   VideoPlayerHelper _videoPlayerHelper = VideoPlayerHelper();
   bool resumed = false;
 
-  _FlickPlayerState({required this.streamUrl, this.playAtMillisecondDuration}) {
+  _FlickPlayerState({required this.streamUrl, this.playAtMillisecondDuration, this.nextEpisodePlayLink, this.hasNextEpisode = false, required this.playNextEpisodeCallback}) {
     streamUrl = streamUrl;
     playAtMillisecondDuration = playAtMillisecondDuration;
+    nextEpisodePlayLink = nextEpisodePlayLink;
+    hasNextEpisode = hasNextEpisode;
+    playNextEpisodeCallback = playNextEpisodeCallback;
   }
 
   @override
@@ -39,7 +52,15 @@ class _FlickPlayerState extends State<FlickPlayer> {
     );
     // Register progress event listener
     _flickManager.flickVideoManager?.videoPlayerController?.addListener(checkVideo);
-    _flickManager.onVideoEnd = _videoPlayerHelper.clearProgress;
+    _flickManager.onVideoEnd = () {
+      if (this.hasNextEpisode) //Quick fix resume video trigger this call
+        this.playNextEpisodeCallback(_flickManager, () {
+          print('is null?' + (_flickManager.flickVideoManager?.videoPlayerController == null).toString());
+          _flickManager.flickVideoManager?.videoPlayerController?.addListener(checkVideo);
+        });
+      else
+        _videoPlayerHelper.clearProgress();
+    };
   }
 
   @override
@@ -60,12 +81,12 @@ class _FlickPlayerState extends State<FlickPlayer> {
     return FlickVideoPlayer(
       flickManager: _flickManager,
       flickVideoWithControls: FlickVideoWithControls(
-        aspectRatioWhenLoading: 16/9,
+        aspectRatioWhenLoading: 16 / 9,
         videoFit: BoxFit.contain,
-        controls: FlickLandscapeControls(),
+        controls: IMapleFlickLandscapeControls(),
       ),
       flickVideoWithControlsFullscreen: FlickVideoWithControls(
-        controls: FlickLandscapeControls(),
+        controls: IMapleFlickLandscapeControls(),
       ),
       preferredDeviceOrientation: [
         DeviceOrientation.landscapeRight,
@@ -76,13 +97,17 @@ class _FlickPlayerState extends State<FlickPlayer> {
     );
   }
 
-  void checkVideo(){
+  void checkVideo() {
     // Implement your calls inside these conditions' bodies :
     if (_flickManager.flickVideoManager?.videoPlayerController != null) {
       VideoPlayerController videoPlayerController = _flickManager.flickVideoManager!.videoPlayerController!;
 
-      if(videoPlayerController.value.position == videoPlayerController.value.duration) {
-        _videoPlayerHelper.clearProgress();
+      if (videoPlayerController.value.position == videoPlayerController.value.duration && videoPlayerController.value.position.inMilliseconds == 0) {
+        // if ( && this.hasNextEpisode) {
+        //   this.playNextEpisodeCallback(_flickManager);
+        // } else {
+        //   _videoPlayerHelper.clearProgress(clearDetailUrl: true);
+        // }
       } else {
         if (this.playAtMillisecondDuration != null && !resumed) {
           videoPlayerController.seekTo(Duration(milliseconds: this.playAtMillisecondDuration!));
