@@ -77,10 +77,12 @@ class MovieDetailState extends State<MovieDetail> with TickerProviderStateMixin 
 
                   item.episodeLink.forEach((key, value) {
                     episodeButtons.add(
-                      TextButton(
-                        style: TextButton.styleFrom(
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
                           primary: Colors.black,
                           textStyle: TextStyle(fontWeight: FontWeight.normal),
+                        ).copyWith(
+                          overlayColor: MaterialStateProperty.all(Colors.red.shade100),
                         ),
                         onPressed: () {
                           //print('play Episode: ${key}, Link: ${value}');
@@ -98,11 +100,11 @@ class MovieDetailState extends State<MovieDetail> with TickerProviderStateMixin 
                         },
                         child: FittedBox(
                           child: Container(
-                            decoration: BoxDecoration(
-                              border: Border.all(),
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
+                            // decoration: BoxDecoration(
+                            //   border: Border.all(),
+                            //   borderRadius: BorderRadius.circular(15),
+                            // ),
+                            // padding: const EdgeInsets.fromLTRB(15, 10, 15, 10),
                             //color: Colors.black26,
                             child: Center(
                               child: Text('${key}'),
@@ -114,7 +116,8 @@ class MovieDetailState extends State<MovieDetail> with TickerProviderStateMixin 
                   });
 
                   var tabView = Wrap(
-                    runSpacing: 20,
+                    spacing: 20,
+                    runSpacing: 10,
                     children: episodeButtons,
                   );
                   return tabView;

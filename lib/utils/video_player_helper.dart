@@ -22,4 +22,8 @@ class VideoPlayerHelper {
       MovieStorage.save();
     });
   }
+
+  String? getCurrentPlayingTitle() {
+    return MovieStorage.instance.lastPlayName;
+  }
 }
